@@ -11,6 +11,8 @@ const btnGuardar = document.getElementById("btnGuardar");
 const btnCancelar = document.getElementById("btnCancelar");
 const tituloFormulario = document.getElementById("tituloFormulario");
 const formContacto = document.getElementById("formularioContacto");
+const listaContactos = document.getElementById("listaContactos");
+const buscarContacto = document.getElementById("buscarContacto");
 
 // 1. Función para consultar los productos y mostrarlos en el DOM (READ)
 async function cargarProductos() {
@@ -23,7 +25,8 @@ async function cargarProductos() {
     listaProductos.innerHTML = "";
 
     if (productos.length === 0) {
-      listaProductos.innerHTML = "<p style='color: #64748b;'>No hay productos registrados.</p>";
+      listaProductos.innerHTML =
+        "<p style='color: #64748b;'>No hay productos registrados.</p>";
       return;
     }
 
@@ -113,7 +116,9 @@ if (formulario) {
 
 // 4. Eliminar un producto (DELETE)
 async function eliminarProducto(id) {
-  const confirmar = confirm("¿Deseas eliminar este producto de la base de datos?");
+  const confirmar = confirm(
+    "¿Deseas eliminar este producto de la base de datos?",
+  );
   if (!confirmar) return;
 
   try {
@@ -132,14 +137,112 @@ async function eliminarProducto(id) {
   }
 }
 
-// 5. Formulario de contacto (demostrativo en contacto.html)
+// 5. Función para consultar los contactos
+async function cargarContactos(buscar = "") {
+  if (!listaContactos) return;
+
+  try {
+    const respuesta = await fetch(
+      `${API_URL}/contacto?buscar=${encodeURIComponent(buscar)}`,
+    );
+    const contactos = await respuesta.json();
+
+    listaContactos.innerHTML = "";
+
+    if (contactos.length === 0) {
+      listaContactos.innerHTML = "<p>No hay contactos registrados.</p>";
+      return;
+    }
+
+    contactos.forEach((contacto) => {
+      const elemento = document.createElement("div");
+      elemento.classList.add("producto");
+
+      let fechaFormateada = "Reciente";
+      if (contacto.fecha) {
+        const fechaObj = new Date(contacto.fecha);
+        fechaFormateada = fechaObj.toLocaleString();
+      }
+
+      elemento.innerHTML = `
+        <div>
+          <h3>${contacto.nombre}</h3>
+          <p>Email: ${contacto.email}</p>
+          <p>Teléfono: ${contacto.telefono}</p>
+          <p>Asunto: ${contacto.asunto}</p>
+          <p>${contacto.mensaje}</p>
+        </div>
+        <div style="display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;">
+          <span class="contacto-fecha">${fechaFormateada}</span>
+          <div class="acciones" style="margin-top: 10px;">
+            <button class="btn-eliminar" onclick="eliminarContacto(${contacto.id})">Eliminar</button>
+          </div>
+        </div>
+      `;
+
+      listaContactos.appendChild(elemento);
+    });
+  } catch (error) {
+    console.error("Error al cargar contactos:", error);
+  }
+}
+
+// 6. Guardar un contacto
 if (formContacto) {
-  formContacto.addEventListener("submit", (e) => {
-    e.preventDefault();
-    alert("¡Mensaje de contacto enviado con éxito!");
-    formContacto.reset();
+  formContacto.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const nombre = document.getElementById("nombre").value;
+    const email = document.getElementById("email").value;
+    const telefono = document.getElementById("telefono").value;
+    const asunto = document.getElementById("asunto").value;
+    const mensaje = document.getElementById("mensaje").value;
+
+    try {
+      const respuesta = await fetch(`${API_URL}/contacto`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, email, telefono, asunto, mensaje }),
+      });
+
+      if (!respuesta.ok) {
+        const error = await respuesta.json();
+        alert("Error: " + error.mensaje);
+        return;
+      }
+
+      alert("¡Mensaje de contacto enviado con éxito!");
+      formContacto.reset();
+      cargarContactos(buscarContacto ? buscarContacto.value : "");
+    } catch (error) {
+      console.error("Error al guardar el contacto:", error);
+    }
+  });
+}
+
+// 7. Eliminar un contacto
+async function eliminarContacto(id) {
+  const confirmar = confirm("¿Deseas eliminar este contacto?");
+  if (!confirmar) return;
+
+  try {
+    await fetch(`${API_URL}/contacto/${id}`, {
+      method: "DELETE",
+    });
+
+    cargarContactos(buscarContacto ? buscarContacto.value : "");
+  } catch (error) {
+    console.error("Error al eliminar contacto:", error);
+  }
+}
+
+// 8. Buscar contactos mientras se escribe
+if (buscarContacto) {
+  buscarContacto.addEventListener("input", () => {
+    cargarContactos(buscarContacto.value);
   });
 }
 
 // Llamado inicial al cargar la página
 cargarProductos();
+cargarContactos();

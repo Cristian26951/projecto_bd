@@ -20,7 +20,9 @@ app.get("/productos", (req, res) => {
   conexion.query(sql, (error, resultados) => {
     if (error) {
       console.error("Error al consultar:", error);
-      return res.status(500).json({ mensaje: "Error al consultar los productos" });
+      return res
+        .status(500)
+        .json({ mensaje: "Error al consultar los productos" });
     }
     // Retornamos el array de productos como JSON al cliente
     res.json(resultados);
@@ -53,13 +55,16 @@ app.put("/productos/:id", (req, res) => {
   const id = req.params.id;
   const { nombre, precio, stock } = req.body;
 
-  const sql = "UPDATE productos SET nombre = ?, precio = ?, stock = ? WHERE id = ?";
+  const sql =
+    "UPDATE productos SET nombre = ?, precio = ?, stock = ? WHERE id = ?";
   const valores = [nombre, precio, stock, id];
 
   conexion.query(sql, valores, (error, resultado) => {
     if (error) {
       console.error("Error al actualizar:", error);
-      return res.status(500).json({ mensaje: "Error al actualizar el producto" });
+      return res
+        .status(500)
+        .json({ mensaje: "Error al actualizar el producto" });
     }
     res.json({ mensaje: "Producto actualizado correctamente" });
   });
@@ -76,6 +81,59 @@ app.delete("/productos/:id", (req, res) => {
       return res.status(500).json({ mensaje: "Error al eliminar el producto" });
     }
     res.json({ mensaje: "Producto eliminado correctamente" });
+  });
+});
+
+// 5. Consultar contacto
+app.get("/contacto", (req, res) => {
+  const buscar = req.query.buscar || "";
+  const sql =
+    "SELECT * FROM contacto WHERE nombre LIKE ? OR email LIKE ? ORDER BY id DESC";
+  const valores = [`%${buscar}%`, `%${buscar}%`];
+
+  conexion.query(sql, valores, (error, resultados) => {
+    if (error) {
+      console.error("Error al consultar:", error);
+      return res
+        .status(500)
+        .json({ mensaje: "Error al consultar los contactos" });
+    }
+    res.json(resultados);
+  });
+});
+
+// 6. Crear un nuevo contacto
+app.post("/contacto", (req, res) => {
+  const { nombre, email, telefono, asunto, mensaje } = req.body;
+
+  const sql =
+    "INSERT INTO contacto (nombre, email, telefono, asunto, mensaje) VALUES (?, ?, ?, ?, ?)";
+  const valores = [nombre, email, telefono, asunto, mensaje];
+
+  conexion.query(sql, valores, (error, resultado) => {
+    if (error) {
+      console.error("Error al insertar:", error);
+      return res.status(500).json({ mensaje: "Error al crear el contacto" });
+    }
+
+    res.status(201).json({
+      mensaje: "Contacto creado correctamente",
+      id: resultado.insertId,
+    });
+  });
+});
+
+// 7. Eliminar un contacto
+app.delete("/contacto/:id", (req, res) => {
+  const id = req.params.id;
+  const sql = "DELETE FROM contacto WHERE id = ?";
+
+  conexion.query(sql, [id], (error, resultado) => {
+    if (error) {
+      console.error("Error al eliminar:", error);
+      return res.status(500).json({ mensaje: "Error al eliminar el contacto" });
+    }
+    res.json({ mensaje: "Contacto eliminado correctamente" });
   });
 });
 
