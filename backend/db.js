@@ -18,11 +18,11 @@ const configuracion = {
   database,
 };
 
-// Si el host es remoto (TiDB Cloud), habilitar el SSL automaticamente
+// Si el host es remoto (TiDB Cloud), habilitar  el SSL automaticamente
 if (host !== "localhost" && host !== "127.0.0.1") {
-  configuracion.ss1 = {
+  configuracion.ssl = {
     minVersion: "TLSv1.2",
-    rejectUnauthorized: true,
+    rejectUnauhorized: true,
   };
 }
 
@@ -32,10 +32,10 @@ const conexion = mysql.createConnection(configuracion);
 // Comprobamos si la conexión fue exitosa
 conexion.connect((error) => {
   if (error) {
-    console.error("Error al conectar con la Base de Datos", error.message);
+    console.error("Error al conectar con la Base de datos", error.message);
     return;
   }
-  console.log(`Conexión exitosa con la Base de Datos (${host}:${port})`);
+  console.log(`Conexión exitosa con la base de datos (${host}:${port})`);
 });
 
 // Exportar la conexión para reutilizarla en las rutas del servidor

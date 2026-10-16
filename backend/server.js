@@ -85,56 +85,68 @@ app.delete("/productos/:id", (req, res) => {
   });
 });
 
-// 5. Consultar contacto
-app.get("/contacto", (req, res) => {
-  const buscar = req.query.buscar || "";
-  const sql =
-    "SELECT * FROM contacto WHERE nombre LIKE ? OR email LIKE ? ORDER BY id DESC";
-  const valores = [`%${buscar}%`, `%${buscar}%`];
+// ==========================================
+// RUTAS DE CONTACTO
+// ==========================================
 
-  conexion.query(sql, valores, (error, resultados) => {
-    if (error) {
-      console.error("Error al consultar:", error);
-      return res
-        .status(500)
-        .json({ mensaje: "Error al consultar los contactos" });
-    }
-    res.json(resultados);
-  });
-});
-
-// 6. Crear un nuevo contacto
+// 5. Registrar un nuevo mensaje de contacto (POST)
 app.post("/contacto", (req, res) => {
-  const { nombre, email, telefono, asunto, mensaje } = req.body;
+  const { nombre, email, asunto, mensaje } = req.body;
+
+  // Validación básica de campos requeridos
+  if (!nombre || !email || !asunto || !mensaje) {
+    return res
+      .status(400)
+      .json({ mensaje: "Todos los campos son obligatorios" });
+  }
 
   const sql =
-    "INSERT INTO contacto (nombre, email, telefono, asunto, mensaje) VALUES (?, ?, ?, ?, ?)";
-  const valores = [nombre, email, telefono, asunto, mensaje];
+    "INSERT INTO mensajes_contacto (nombre, email, asunto, mensaje) VALUES (?, ?, ?, ?)";
+  const valores = [nombre, email, asunto, mensaje];
 
   conexion.query(sql, valores, (error, resultado) => {
     if (error) {
-      console.error("Error al insertar:", error);
-      return res.status(500).json({ mensaje: "Error al crear el contacto" });
+      console.error("Error al guardar mensaje de contacto:", error);
+      return res
+        .status(500)
+        .json({ mensaje: "Error al registrar el mensaje de contacto" });
     }
 
     res.status(201).json({
-      mensaje: "Contacto creado correctamente",
+      mensaje: "Mensaje de contacto enviado con éxito",
       id: resultado.insertId,
     });
   });
 });
 
-// 7. Eliminar un contacto
+// 6. Consultar todos los mensajes de contacto (GET)
+app.get("/contacto", (req, res) => {
+  const sql = "SELECT * FROM mensajes_contacto ORDER BY fecha_registro DESC";
+
+  conexion.query(sql, (error, resultados) => {
+    if (error) {
+      console.error("Error al consultar mensajes de contacto:", error);
+      return res
+        .status(500)
+        .json({ mensaje: "Error al consultar los mensajes de contacto" });
+    }
+    res.json(resultados);
+  });
+});
+
+// 7. Eliminar un mensaje de contacto (DELETE)
 app.delete("/contacto/:id", (req, res) => {
   const id = req.params.id;
-  const sql = "DELETE FROM contacto WHERE id = ?";
+  const sql = "DELETE FROM mensajes_contacto WHERE id = ?";
 
   conexion.query(sql, [id], (error, resultado) => {
     if (error) {
-      console.error("Error al eliminar:", error);
-      return res.status(500).json({ mensaje: "Error al eliminar el contacto" });
+      console.error("Error al eliminar mensaje de contacto:", error);
+      return res
+        .status(500)
+        .json({ mensaje: "Error al eliminar el mensaje de contacto" });
     }
-    res.json({ mensaje: "Contacto eliminado correctamente" });
+    res.json({ mensaje: "Mensaje eliminado correctamente" });
   });
 });
 
