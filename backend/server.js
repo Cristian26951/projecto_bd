@@ -91,18 +91,18 @@ app.delete("/productos/:id", (req, res) => {
 
 // 5. Registrar un nuevo mensaje de contacto (POST)
 app.post("/contacto", (req, res) => {
-  const { nombre, email, asunto, mensaje } = req.body;
+  const { nombre, email, asunto, mensaje, telefono } = req.body;
 
   // Validación básica de campos requeridos
-  if (!nombre || !email || !asunto || !mensaje) {
+  if (!nombre || !email || !asunto || !mensaje || !telefono) {
     return res
       .status(400)
       .json({ mensaje: "Todos los campos son obligatorios" });
   }
 
   const sql =
-    "INSERT INTO mensajes_contacto (nombre, email, asunto, mensaje) VALUES (?, ?, ?, ?)";
-  const valores = [nombre, email, asunto, mensaje];
+    "INSERT INTO mensajes_contacto (nombre, email, asunto, mensaje, telefono) VALUES (?, ?, ?, ?, ?)";
+  const valores = [nombre, email, asunto, mensaje, telefono];
 
   conexion.query(sql, valores, (error, resultado) => {
     if (error) {
