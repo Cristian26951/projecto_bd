@@ -22,7 +22,7 @@ const configuracion = {
 if (host !== "localhost" && host !== "127.0.0.1") {
   configuracion.ssl = {
     minVersion: "TLSv1.2",
-    rejectUnauhorized: true,
+    rejectUnauthorized: true,
   };
 }
 
